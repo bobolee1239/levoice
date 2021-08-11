@@ -67,6 +67,7 @@ def train(epoch):
                 running_loss = 0.0
 
             nstep += 1
+    return nstep
 
 
 def main(args):
@@ -76,10 +77,12 @@ def main(args):
 
     if model_path:
         load_model(model, model_path)
+    try:
+        nstep = train(nepoch)
+    except:
+        pass
 
-    train(nepoch)
-
-    savefile = os.path.join(save_dir, 'LeVoice.pth')
+    savefile = os.path.join(save_dir, f'LeVoice-{nstep}.pth')
     os.makedirs(save_dir, exist_ok=True)
     torch.save(model.state_dict(), savefile)
 
