@@ -12,6 +12,12 @@ if '..' not in sys.path:
 
 from model.LeVoice      import LeVoice
 
+SR       = 16000
+NFFT     = 1024
+NMEL     = 40
+HOP_SIZE = 160
+WIN_SIZE = 640
+WIN_TYPE = 'hann'
 # ---------------------------------------------------------------
 # ---------------------------------------------------------------
 def load_model(net, path):
@@ -41,7 +47,7 @@ def extract_feature(sig):
                         center=False, 
                         power=2.0
                     )
-    return torch.tensor(me_spectra).unsqueeze(0)
+    return torch.tensor(mel_spectra).permute(1, 0).unsqueeze(0)
 
 def main(args):
     audio      = args.audio
@@ -55,13 +61,12 @@ def main(args):
     sig, sr = audioread_mono(audio)
 
     feat = extract_feature(sig)
-
     with torch.no_grad():
         output = model(feat)
 
     _, pred = torch.max(output, 1)
 
-    print(f'Predicted Class: {pred}')
+    print(f'Predicted Class: {pred.item()}')
     print(f'Model Output: {output}')
 
 
