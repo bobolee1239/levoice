@@ -1,10 +1,15 @@
 # ----------------------------------
 # File: LeVoice.py
 # ----------------------------------
+import sys 
+if '..' not in sys.path:
+    sys.path.append('..')
 
 import torch
-from   torch import nn
+from   torch    import nn
+import config
 
+# -----------------------------------------
 
 class LeVoice(nn.Module):
     def __init__(self, nfreq):
@@ -13,8 +18,9 @@ class LeVoice(nn.Module):
         self.nfreq = nfreq
         
         nhid = 64
-        nclass = 10
+        nclass = config.N_CLASS
 
+        self.relu = nn.ReLU()
         self.tf = nn.Linear(nfreq, nhid)
         self.gru1 = nn.GRU(nhid, nhid)
         self.gru2 = nn.GRU(nhid, nhid)
@@ -33,11 +39,12 @@ class LeVoice(nn.Module):
         feat = feat.permute(1, 0, 2)
 
         hid1 = self.tf(feat)
+        hid1 = self.relu(hid1)
         hid2, hn2 = self.gru1(hid1)
         hid3, hn3 = self.gru2(hid2)
 
-        hid3 = hid3[-1, :, :]
         pred = self.output(hid3)
+        pred = pred.permute(1, 0, 2)
 
         return pred
 

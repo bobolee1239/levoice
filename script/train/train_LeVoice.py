@@ -14,11 +14,12 @@ if '..' not in sys.path:
 from dataset.Dataloader import get_train_dataloader
 from model.LeVoice      import LeVoice
 
+import config
 # ---------------------------------------------------------------
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-nfreq = 40
+nfreq = config.NMEL
 
 model = LeVoice(nfreq).float()
 model.to(device)
@@ -38,7 +39,7 @@ def run_batch(batch):
     mel_spectras.to(device)
 
     preds = model(mel_spectras)
-    loss = critera(preds, labels)
+    loss = critera(preds.reshape(-1, 11), labels.reshape(-1))
 
     return loss, preds
 
@@ -75,11 +76,13 @@ def main(args):
     model_path = args.load
     save_dir   = args.save_dir
 
+    nstep = -1
     if model_path:
         load_model(model, model_path)
     try:
         nstep = train(nepoch)
-    except:
+    except KeyboardInterrupt as err:
+        print(err)
         pass
 
     savefile = os.path.join(save_dir, f'LeVoice-{nstep}.pth')

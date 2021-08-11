@@ -12,13 +12,14 @@ if '..' not in sys.path:
 
 from model.LeVoice      import LeVoice
 
-SR       = 16000
-NFFT     = 1024
-NMEL     = 40
-HOP_SIZE = 160
-WIN_SIZE = 640
-WIN_TYPE = 'hann'
+import config
 # ---------------------------------------------------------------
+SR       = config.SR
+NFFT     = config.NFFT
+NMEL     = config.NMEL
+HOP_SIZE = config.HOP_SIZE
+WIN_SIZE = config.WIN_SIZE
+WIN_TYPE = config.WIN_TYPE
 # ---------------------------------------------------------------
 def load_model(net, path):
     net.load_state_dict(torch.load(path))
@@ -64,10 +65,15 @@ def main(args):
     with torch.no_grad():
         output = model(feat)
 
-    _, pred = torch.max(output, 1)
+    # (1, nFrm, nClass)
+    _, pred = torch.max(output, 2)
+    pred = pred.squeeze()
 
-    print(f'Predicted Class: {pred.item()}')
-    print(f'Model Output: {output}')
+    result = np.where(pred == 10, 0, pred)
+    prediction = result[result != 0].mean()
+
+    print(f'Predict Sequence: \n{result}')
+    print(f'Predict Class: {int(prediction)}')
 
 
 # ----------------------------------------

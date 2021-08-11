@@ -1,6 +1,9 @@
 # ----------------------------------
 # File: Dataloader.py
 # ----------------------------------
+import sys 
+if '..' not in sys.path:
+    sys.path.append('..')
 
 from torch.utils.data            import DataLoader, ConcatDataset
 from dataset.VoiceCommandDataset import VoiceCommandDataset
