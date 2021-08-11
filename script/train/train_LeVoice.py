@@ -31,6 +31,8 @@ critera = torch.nn.CrossEntropyLoss()
 def run_batch(batch):
     sigs, spectrums, mel_spectras, labels = batch
 
+    mel_spectras.to(device)
+
     preds = model(mel_spectras)
     loss = critera(preds, labels)
 
