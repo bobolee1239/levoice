@@ -19,7 +19,7 @@ HOP_SIZE = 160
 WIN_SIZE = 640
 WIN_TYPE = 'hann'
 
-SECONDS  = 2
+SECONDS  = 1
 LENGTH   = SECONDS * SR
 # -----------------------------------------------------
 def pad_to(sig, target_len):
@@ -28,7 +28,7 @@ def pad_to(sig, target_len):
     if length >= target_len:
         return sig[:target_len]
     
-    pad_len = target_len - length
+    pad_len = int(target_len - length)
 
     return np.concatenate((sig, np.zeros((pad_len, ))))
 

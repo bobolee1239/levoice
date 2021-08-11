@@ -6,7 +6,7 @@ from torch.utils.data    import DataLoader, ConcatDataset
 from VoiceCommandDataset import VoiceCommandDataset
 
 TRAIN_SET_FOLDER = [
-    '/Users/brian/brian_ws/KWS/src/levoice/test_audio'
+    '/Users/brian/brian_ws/ASR/dataset/FSDD/recordings'
 ]
 
 def get_train_dataloader():
