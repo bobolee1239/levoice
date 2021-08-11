@@ -28,6 +28,10 @@ optim = torch.optim.RMSprop(
         )
 critera = torch.nn.CrossEntropyLoss()
 # ---------------------------------------------------------------
+
+def load_model(net, path):
+    net.load_state_dict(torch.load(path))
+    
 def run_batch(batch):
     sigs, spectrums, mel_spectras, labels = batch
 
@@ -62,13 +66,16 @@ def train(epoch):
                 })
                 running_loss = 0.0
 
-        nstep += 1
+            nstep += 1
 
 
 def main(args):
     nepoch     = args.epoch
-    load_model = args.load
+    model_path = args.load
     save_dir   = args.save_dir
+
+    if model_path:
+        load_model(model, model_path)
 
     train(nepoch)
 
