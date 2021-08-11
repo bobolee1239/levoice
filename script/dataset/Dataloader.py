@@ -2,20 +2,20 @@
 # File: Dataloader.py
 # ----------------------------------
 
-from torch.utils.data    import DataLoader, ConcatDataset
-from VoiceCommandDataset import VoiceCommandDataset
+from torch.utils.data            import DataLoader, ConcatDataset
+from dataset.VoiceCommandDataset import VoiceCommandDataset
 
 TRAIN_SET_FOLDER = [
     '/Users/brian/brian_ws/ASR/dataset/FSDD/recordings'
 ]
 
-def get_train_dataloader():
+def get_train_dataloader(batch_size=32):
     trainsets = [VoiceCommandDataset(d) for d in TRAIN_SET_FOLDER]
     trainset = ConcatDataset(trainsets)
 
     loader = DataLoader(
                 trainset, 
-                batch_size=10, 
+                batch_size=batch_size, 
                 shuffle=True
              )
     return loader

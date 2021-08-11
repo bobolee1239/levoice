@@ -92,6 +92,6 @@ class VoiceCommandDataset(Dataset):
                        )
         
         # (nFrm, nFreq)
-        spectrum    = np.transpose(spectrum)
-        mel_spectra = np.transpose(mel_spectra)
+        spectrum    = np.transpose(spectrum).astype(np.complex64)
+        mel_spectra = np.transpose(mel_spectra).astype(np.float32)
         return sig, spectrum, mel_spectra, label

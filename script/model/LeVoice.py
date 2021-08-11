@@ -3,7 +3,7 @@
 # ----------------------------------
 
 import torch
-from torch import nn
+from   torch import nn
 
 
 class LeVoice(nn.Module):
@@ -29,14 +29,15 @@ class LeVoice(nn.Module):
         Args:
             - feat: <tensor> (N, nFrm, nFreq)
         '''
+        # (nFrm, N, nFreq)
         feat = feat.permute(1, 0, 2)
 
         hid1 = self.tf(feat)
         hid2, hn2 = self.gru1(hid1)
         hid3, hn3 = self.gru2(hid2)
 
+        hid3 = hid3[-1, :, :]
         pred = self.output(hid3)
-        pred = pred.permute(1, 0, 2)
 
         return pred
 

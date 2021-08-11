@@ -2,10 +2,14 @@
 # File: train_LeVoice.py
 # ----------------------------------
 import os
+import sys
 import torch
 import numpy       as np
 
 from tqdm import tqdm
+
+if '..' not in sys.path:
+    sys.path.append('..')
 
 from dataset.Dataloader import get_train_dataloader
 from model.LeVoice      import LeVoice
@@ -16,8 +20,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 nfreq = 40
 
-model = LeVoice(nfreq)
-optim = torch.optim.RMSProp(
+model = LeVoice(nfreq).float()
+model.to(device)
+optim = torch.optim.RMSprop(
             model.parameters(),
             weight_decay=1e-4
         )
@@ -27,7 +32,7 @@ def run_batch(batch):
     sigs, spectrums, mel_spectras, labels = batch
 
     preds = model(mel_spectras)
-    loss = criteria(preds, labels)
+    loss = critera(preds, labels)
 
     return loss, preds
 
@@ -35,9 +40,10 @@ def train(epoch):
     nstep = 0
     running_loss = 0.0
     nlog = 200
+    batch_size = 32
 
     for n in range(epoch):
-        loader = tqdm(get_train_dataloader())
+        loader = tqdm(get_train_dataloader(batch_size=batch_size))
 
         for batch in loader:
             optim.zero_grad()
@@ -62,11 +68,10 @@ def main(args):
     load_model = args.load
     save_dir   = args.save_dir
 
-    os.makedirs(save_dir, exist_ok=True)
-
     train(nepoch)
 
     savefile = os.path.join(save_dir, 'LeVoice.pth')
+    os.makedirs(save_dir, exist_ok=True)
     torch.save(model.state_dict(), savefile)
 
 
