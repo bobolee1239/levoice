@@ -54,7 +54,7 @@ def main(args):
     audio      = args.audio
     model_path = args.model
 
-    nfreq = 40
+    nfreq = NMEL
     model = LeVoice(nfreq)
 
     load_model(model, model_path)
