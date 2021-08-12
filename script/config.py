@@ -2,7 +2,7 @@
 
 SR       = 16000
 NFFT     = 1024
-NMEL     = 39
+NMEL     = 40
 HOP_SIZE = 160
 WIN_SIZE = 640
 WIN_TYPE = 'hann'
