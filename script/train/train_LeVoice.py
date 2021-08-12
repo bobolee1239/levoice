@@ -16,8 +16,12 @@ from model.LeVoice      import LeVoice
 
 import config
 # ---------------------------------------------------------------
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+if torch.cuda.is_available():
+    print('[INFO] Training with GPU')
+    device = torch.device('cuda')
+else:
+    print('[WARN] Training with CPU')
+    device = torch.device('cpu')
 
 nfreq = config.NMEL
 
@@ -36,20 +40,22 @@ def load_model(net, path):
 def run_batch(batch):
     sigs, spectrums, mel_spectras, labels = batch
 
-    mel_spectras.to(device)
+    mel_spectras = mel_spectras.to(device)
+    labels       = labels.to(device)
 
     preds = model(mel_spectras)
-    loss = critera(preds.reshape(-1, 11), labels.reshape(-1))
+    loss = critera(preds.reshape(-1, config.N_CLASS), labels.reshape(-1))
 
     return loss, preds
 
-def train(epoch):
+def train(epoch, save_dir='.'):
     nstep = 0
     running_loss = 0.0
     nlog  = 200
     nsave = 200 
     batch_size = 32
 
+    model.train()
     for n in range(epoch):
         loader = tqdm(get_train_dataloader(batch_size=batch_size))
 
@@ -88,7 +94,8 @@ def main(args):
     if model_path:
         load_model(model, model_path)
     try:
-        nstep = train(nepoch)
+        nstep = train(nepoch, 
+                      save_dir=save_dir)
     except KeyboardInterrupt as err:
         print(err)
         pass
