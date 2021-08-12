@@ -26,6 +26,8 @@ SECONDS  = config.SECONDS
 LENGTH   = config.LENGTH
 
 LABEL_ELSE = config.N_CLASS - 1
+
+EPS = np.finfo(float).eps
 # -----------------------------------------------------
 def pad_to(sig, label, target_len):
     length = sig.shape[0]
@@ -49,6 +51,24 @@ def pad_to(sig, label, target_len):
         label_hat = np.concatenate((label_f, labels, label_b))
 
     return sig_hat, label_hat
+
+
+def normalize(audio, target_level=-25):
+    '''Normalize the signal to the target level'''
+    rms = (audio ** 2).mean() ** 0.5
+    scalar = 10 ** (target_level / 20) / (rms+EPS)
+    audio = audio * scalar
+    return audio
+
+
+def snr_mix(voc, bgn, snr, spl):
+    rms_voc = (voc ** 2).mean() ** 0.5
+    rms_bgn = (bgn ** 2).mean() ** 0.5
+
+    gain_bgn = rms_voc / (10.0 ** (snr / 20.0)) / (rms_bgn + EPS)
+
+    sig = voc + gain_bgn * bgn
+    return normalize(sig, target_level=spl)
 
 
 def label_smpl2frm(label_smpl, label_idx):
@@ -79,11 +99,14 @@ def stft(sig):
 
 
 class VoiceCommandDataset(Dataset):
-    def __init__(self, wavfolder, class_tablefile):
+    def __init__(self, wavfolder, bgnfolder, class_tablefile):
         super().__init__()
 
         wavs = list(Path(wavfolder).rglob('*.wav'))
         wavs = [str(wav) for wav in wavs]
+
+        bgns = list(Path(bgnfolder).rglob('*.wav'))
+        bgns = [str(bgn) for bgn in bgns]
 
         class_table = None
         with open(class_tablefile, 'r') as fd:
@@ -98,8 +121,14 @@ class VoiceCommandDataset(Dataset):
                 'label': class_id
             })
 
+        self.bgns   = bgns
         self.cmds   = cmds
         self.length = len(self.cmds)
+        
+        # For Augmentation 
+        self.silence_prob = 0.1
+        self.snr_range    = [0, 40]
+        self.spl_range    = [-45, -6]
     
     def __len__(self):
         return self.length
@@ -113,6 +142,15 @@ class VoiceCommandDataset(Dataset):
         sig, label_smpl = pad_to(sig, label_id, LENGTH)
 
         label = label_smpl2frm(label_smpl, label_id)
+
+        # --- Augmentation ---
+        if random.random() > self.silence_prob:
+            nsefile = random.choice(self.bgns)
+            nse, _  = audioread_mono(nsefile)
+            snr     = random.randint(*self.snr_range)
+            spl     = random.randint(*self.spl_range)
+
+            sig = snr_mix(sig, nse, snr, spl)
 
         spectrum = stft(sig)
         # spectra  = np.abs(spectrum) ** 2.0
