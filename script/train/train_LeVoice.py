@@ -46,7 +46,8 @@ def run_batch(batch):
 def train(epoch):
     nstep = 0
     running_loss = 0.0
-    nlog = 200
+    nlog  = 200
+    nsave = 200 
     batch_size = 32
 
     for n in range(epoch):
@@ -68,6 +69,13 @@ def train(epoch):
                 running_loss = 0.0
 
             nstep += 1
+
+            to_save = (nstep - 1) % nsave == 0
+            if to_save:
+                savefile = os.path.join(save_dir, f'LeVoice-{nstep}.pth')
+                if not os.path.isdir(save_dir):
+                    os.makedirs(save_dir, exist_ok=False)
+                torch.save(model.state_dict(), savefile)
     return nstep
 
 
@@ -86,7 +94,8 @@ def main(args):
         pass
 
     savefile = os.path.join(save_dir, f'LeVoice-{nstep}.pth')
-    os.makedirs(save_dir, exist_ok=True)
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir, exist_ok=False)
     torch.save(model.state_dict(), savefile)
 
 
