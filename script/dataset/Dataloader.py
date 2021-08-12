@@ -8,16 +8,20 @@ if '..' not in sys.path:
 from torch.utils.data            import DataLoader, ConcatDataset
 from dataset.VoiceCommandDataset import VoiceCommandDataset
 
-TRAIN_SET_FOLDER = [
-    '/Users/brian/brian_ws/ASR/dataset/FSDD/recordings'
-]
+import config
+
+TRAIN_CMD_FOLDER = config.TRAIN_CMD_FOLDER
+TRAIN_BGN_FOLDER = config.TRAIN_BGN_FOLDER
+CLASS_TABLE_FILE = config.CLASS_TABLE_FILE
+
+# -------------------------------------------------
 
 def get_train_dataloader(batch_size=32):
-    trainsets = [VoiceCommandDataset(d) for d in TRAIN_SET_FOLDER]
-    trainset = ConcatDataset(trainsets)
+    train_cmd_sets = [VoiceCommandDataset(d, CLASS_TABLE_FILE) for d in TRAIN_CMD_FOLDER]
+    train_cmd_set = ConcatDataset(train_cmd_sets)
 
     loader = DataLoader(
-                trainset, 
+                train_cmd_set, 
                 batch_size=batch_size, 
                 shuffle=True
              )
@@ -32,7 +36,7 @@ if __name__ == '__main__':
     import librosa
     import matplotlib.pyplot as plt
 
-    loader = get_train_dataloader()
+    loader = get_train_dataloader(9)
 
     def plot_feature1(feat):
         import librosa.display

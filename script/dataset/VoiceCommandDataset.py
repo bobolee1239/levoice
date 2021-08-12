@@ -2,6 +2,7 @@
 # File: VoiceCommandDataset.py
 # ----------------------------------
 import os 
+import json
 import random
 import torch
 import librosa
@@ -23,6 +24,8 @@ WIN_TYPE = config.WIN_TYPE
 
 SECONDS  = config.SECONDS
 LENGTH   = config.LENGTH
+
+LABEL_ELSE = config.N_CLASS - 1
 # -----------------------------------------------------
 def pad_to(sig, label, target_len):
     length = sig.shape[0]
@@ -39,15 +42,19 @@ def pad_to(sig, label, target_len):
         pad_b  = np.zeros((n_back, ))
         labels = np.ones((length, )) * label
 
-        sig_hat   = np.concatenate((pad_f, sig   , pad_b))
-        label_hat = np.concatenate((pad_f, labels, pad_b))
+        label_f = np.ones(pad_f.shape) * -1
+        label_b = np.ones(pad_b.shape) * -1
+
+        sig_hat   = np.concatenate((pad_f  , sig   , pad_b  ))
+        label_hat = np.concatenate((label_f, labels, label_b))
 
     return sig_hat, label_hat
 
+
 def label_smpl2frm(label_smpl, label_idx):
     label_frm = label_smpl.reshape((-1, HOP_SIZE))
-    msk = (np.sum(label_frm, axis=1) > 0)
-    return np.where(msk, label_idx, 10)
+    msk = (np.sum(label_frm, axis=1) > -160)
+    return np.where(msk, label_idx, LABEL_ELSE)
     
 
 def audioread_mono(wavfile):
@@ -72,21 +79,35 @@ def stft(sig):
 
 
 class VoiceCommandDataset(Dataset):
-    def __init__(self, folder):
-        wavs = list(Path(folder).rglob('*.wav'))
+    def __init__(self, wavfolder, class_tablefile):
+        super().__init__()
+
+        wavs = list(Path(wavfolder).rglob('*.wav'))
         wavs = [str(wav) for wav in wavs]
 
-        self.wavs   = wavs
-        self.length = len(wavs)
+        class_table = None
+        with open(class_tablefile, 'r') as fd:
+            class_table = json.load(fd)
 
-        random.shuffle(self.wavs)
+        cmds = []
+        for wav in wavs:
+            class_descrip = os.path.basename(os.path.dirname(wav)).rstrip().lstrip()
+            class_id = class_table[class_descrip]
+            cmds.append({
+                'wav'  : wav,
+                'label': class_id
+            })
+
+        self.cmds   = cmds
+        self.length = len(self.cmds)
     
     def __len__(self):
         return self.length
     
     def __getitem__(self, idx):
-        wavfile = self.wavs[idx]
-        label_id = int(os.path.basename(wavfile).split('_')[0])
+        wavfile  = self.cmds[idx]['wav'  ]
+        label_id = self.cmds[idx]['label'] 
+
         sig, sr = audioread_mono(wavfile)
 
         sig, label_smpl = pad_to(sig, label_id, LENGTH)
@@ -94,7 +115,7 @@ class VoiceCommandDataset(Dataset):
         label = label_smpl2frm(label_smpl, label_id)
 
         spectrum = stft(sig)
-        spectra  = np.abs(spectrum) ** 2.0
+        # spectra  = np.abs(spectrum) ** 2.0
 
         mel_spectra = librosa.feature.melspectrogram(
                         #  S=spectra,

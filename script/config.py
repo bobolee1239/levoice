@@ -10,4 +10,14 @@ WIN_TYPE = 'hann'
 SECONDS  = 4
 LENGTH   = SECONDS * SR
 
-N_CLASS = 11
+N_CLASS = 36
+
+TRAIN_CMD_FOLDER = [
+    '/home/cimlabber/colin_ws/voice/datasets/speech_command_levoice/dataset/speech_cmd_dataset'
+]
+
+TRAIN_BGN_FOLDER = [
+    '/home/cimlabber/colin_ws/voice/datasets/speech_command_levoice/dataset/bgn'
+]
+
+CLASS_TABLE_FILE = '/home/cimlabber/colin_ws/voice/datasets/speech_command_levoice/speech_cmd_class_table.json'
