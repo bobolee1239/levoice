@@ -37,7 +37,9 @@ if __name__ == '__main__':
     import librosa
     import matplotlib.pyplot as plt
 
-    loader = get_train_dataloader(9)
+    batch_size = 9
+
+    loader = get_train_dataloader(batch_size)
 
     def plot_feature1(feat):
         import librosa.display
@@ -62,9 +64,10 @@ if __name__ == '__main__':
             
         sigs, specs, mel_specs, label = batch
 
-        mel_spec = mel_specs[0].permute(1, 0).numpy()
-        spec = np.abs(specs[0].permute(1, 0).numpy()) ** 2
-        plot_feature2(mel_spec)
-        plot_feature2(spec)
+        for b in range(batch_size):
+            mel_spec = mel_specs[b].permute(1, 0).numpy()
+            spec = np.abs(specs[b].permute(1, 0).numpy()) ** 2
+            plot_feature2(mel_spec)
+            plot_feature2(spec)
 
-        pdb.set_trace()
+            pdb.set_trace()
