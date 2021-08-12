@@ -52,8 +52,8 @@ def train(epoch, save_dir='.'):
     nstep = 0
     running_loss = 0.0
     nlog  = 200
-    nsave = 200 
-    batch_size = 32
+    nsave = 2000 
+    batch_size = 64
 
     model.train()
     for n in range(epoch):
