@@ -61,8 +61,22 @@ def normalize(audio, target_level=-25):
     return audio
 
 
-def snr_mix(voc, bgn, snr, spl):
-    rms_voc = (voc ** 2).mean() ** 0.5
+def tailor_bgn(bgn, target_len):
+    length = bgn.shape[0]
+    
+    if length > target_len:
+        src = random.randint(0, length - target_len)
+        return bgn[src:src+target_len]
+    
+    bgn2 = np.concatenate((bgn, bgn), axis=0)
+    return tailor_bgn(bgn2, target_len)
+
+
+def snr_mix(voc, _bgn, snr, spl, rms_voc=None):
+    bgn = tailor_bgn(_bgn, target_len=voc.shape[0])
+
+    if rms_voc is None:
+        rms_voc = (voc ** 2).mean() ** 0.5
     rms_bgn = (bgn ** 2).mean() ** 0.5
 
     gain_bgn = rms_voc / (10.0 ** (snr / 20.0)) / (rms_bgn + EPS)
@@ -138,6 +152,7 @@ class VoiceCommandDataset(Dataset):
         label_id = self.cmds[idx]['label'] 
 
         sig, sr = audioread_mono(wavfile)
+        rms_sig = (sig ** 2).mean() ** 0.5
 
         sig, label_smpl = pad_to(sig, label_id, LENGTH)
 
@@ -150,7 +165,7 @@ class VoiceCommandDataset(Dataset):
             snr     = random.randint(*self.snr_range)
             spl     = random.randint(*self.spl_range)
 
-            sig = snr_mix(sig, nse, snr, spl)
+            sig = snr_mix(sig, nse, snr, spl, rms_voc=rms_sig)
 
         spectrum = stft(sig)
         # spectra  = np.abs(spectrum) ** 2.0
