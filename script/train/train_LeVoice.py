@@ -56,8 +56,9 @@ def train(epoch, save_dir='.'):
     batch_size = 64
 
     model.train()
+    train_loader = get_train_dataloader(batch_size=batch_size, nworker=8)
     for n in range(epoch):
-        loader = tqdm(get_train_dataloader(batch_size=batch_size))
+        loader = tqdm(train_loader)
 
         for batch in loader:
             optim.zero_grad()

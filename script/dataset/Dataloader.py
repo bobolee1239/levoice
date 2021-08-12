@@ -16,7 +16,7 @@ CLASS_TABLE_FILE = config.CLASS_TABLE_FILE
 
 # -------------------------------------------------
 
-def get_train_dataloader(batch_size=32):
+def get_train_dataloader(batch_size=32, nworker=0):
     bgnfolder = TRAIN_BGN_FOLDER[0]
     train_cmd_sets = [VoiceCommandDataset(d, bgnfolder, CLASS_TABLE_FILE) for d in TRAIN_CMD_FOLDER]
     train_cmd_set = ConcatDataset(train_cmd_sets)
@@ -24,7 +24,8 @@ def get_train_dataloader(batch_size=32):
     loader = DataLoader(
                 train_cmd_set, 
                 batch_size=batch_size, 
-                shuffle=True
+                shuffle=True,
+                num_workers=nworker,
              )
     return loader
 
