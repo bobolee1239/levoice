@@ -6,7 +6,8 @@ import sys
 import torch
 import numpy       as np
 
-from tqdm import tqdm
+from tensorboardX import SummaryWriter
+from tqdm         import tqdm
 
 if '..' not in sys.path:
     sys.path.append('..')
