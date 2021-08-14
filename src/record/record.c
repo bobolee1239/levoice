@@ -43,12 +43,14 @@
   /* #define SAMPLE_RATE  (17932) // Test failure to open with this value. */
   #define SAMPLE_RATE  (16000)
   #define FRAMES_PER_BUFFER (160)
-  #define NUM_SECONDS     (1)
+  #define NUM_SECONDS     (3)
   #define NUM_CHANNELS    (1)
   /* #define DITHER_FLAG     (paDitherOff) */
   #define DITHER_FLAG     (0) 
   
   #define WRITE_TO_FILE   (1)
+
+  #define OUT_FILENAME  "recording.pcm"
   
   /* Select sample format. */
   #if 0
@@ -278,7 +280,7 @@
   #if WRITE_TO_FILE
       {
           FILE  *fid;
-          fid = fopen("recorded.raw", "wb");
+          fid = fopen(OUT_FILENAME, "wb");
           if( fid == NULL )
           {
               printf("Could not open file.");

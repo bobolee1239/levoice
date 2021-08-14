@@ -1,6 +1,6 @@
 all:
-	gcc record.c -o record -lportaudio
+	gcc record.c -o record.exe -lportaudio
 
 clean:
 	find . -name "*.o" -delete
-	rm record
+	rm record.exe

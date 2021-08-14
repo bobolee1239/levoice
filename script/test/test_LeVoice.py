@@ -4,6 +4,7 @@
 import os
 import sys
 import torch
+import logging
 import librosa
 import numpy       as np
 
@@ -20,9 +21,18 @@ NMEL     = config.NMEL
 HOP_SIZE = config.HOP_SIZE
 WIN_SIZE = config.WIN_SIZE
 WIN_TYPE = config.WIN_TYPE
+
+LABEL_ELSE = config.N_CLASS - 1
+
+logger = logging.getLogger('LeVoice')
+logging.basicConfig(level=logging.INFO)
 # ---------------------------------------------------------------
 def load_model(net, path):
-    net.load_state_dict(torch.load(path))
+    logger.info(f'* Loading LeVoice model: {path}')
+    net.load_state_dict(
+        torch.load(path,
+                   map_location=torch.device('cpu'))
+    )
 
 
 def audioread_mono(wavfile):
@@ -53,6 +63,13 @@ def extract_feature(sig):
 def main(args):
     audio      = args.audio
     model_path = args.model
+    
+    '''
+    class_tablefile = ''
+    class_table = None
+    with open(class_tablefile, 'r') as fd:
+        class_table = json.load(fd)
+    '''
 
     nfreq = NMEL
     model = LeVoice(nfreq)
@@ -69,11 +86,14 @@ def main(args):
     _, pred = torch.max(output, 2)
     pred = pred.squeeze()
 
-    result = np.where(pred == 10, 0, pred)
-    prediction = result[result != 0].mean()
-
-    print(f'Predict Sequence: \n{result}')
-    print(f'Predict Class: {int(prediction)}')
+    #result = np.where(pred == 10, 0, pred)
+    pred_stat = np.bincount(pred[pred != LABEL_ELSE])
+    prediction = np.argmax(pred_stat)
+    
+    print(f'Predict Sequence    :')
+    print(f'{pred}')
+    print(f'Prediction Statistic: {int(prediction)}')
+    #print(f'Prediction          : {int(pred_stat)}')
 
 
 # ----------------------------------------
