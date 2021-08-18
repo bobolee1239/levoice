@@ -3,6 +3,7 @@
 # ----------------------------------
 import os
 import sys
+import json
 import torch
 import logging
 import librosa
@@ -63,13 +64,12 @@ def extract_feature(sig):
 def main(args):
     audio      = args.audio
     model_path = args.model
+    table_file = args.table
     
-    '''
-    class_tablefile = ''
     class_table = None
-    with open(class_tablefile, 'r') as fd:
-        class_table = json.load(fd)
-    '''
+    if table_file:
+        with open(table_file, 'r') as fd:
+            class_table = json.load(fd)
 
     nfreq = NMEL
     model = LeVoice(nfreq)
@@ -88,12 +88,17 @@ def main(args):
 
     #result = np.where(pred == 10, 0, pred)
     pred_stat = np.bincount(pred[pred != LABEL_ELSE])
-    prediction = np.argmax(pred_stat)
+    prediction = int(np.argmax(pred_stat))
     
     print(f'Predict Sequence    :')
     print(f'{pred}')
     print(f'Prediction Statistic: {int(prediction)}')
     #print(f'Prediction          : {int(pred_stat)}')
+
+    if class_table is not None:
+        print('---' * 20)
+        print(f'Prediction Class: {class_table[str(prediction)]}')
+
 
 
 # ----------------------------------------
@@ -113,6 +118,13 @@ if __name__ == '__main__':
         type=str,
         required=True,
         help='NN model to be loaded'
+    )
+    parser.add_argument(
+        '-t',
+        '--table', 
+        type=str,
+        required=False,
+        help='Class table to look up'
     )
 
     args = parser.parse_args()
