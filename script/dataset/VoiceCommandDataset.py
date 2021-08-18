@@ -37,15 +37,18 @@ def pad_to(sig, label, target_len):
         label_hat = np.ones((target_len, )) * label
     else: 
         pad_len = int(target_len - length)
-        n_front = random.randint(0, pad_len)
-        n_back  = pad_len - n_front
+        n_back  = random.randint(8000, pad_len)
+        n_front = pad_len - n_back
 
         pad_f  = np.zeros((n_front, ))
         pad_b  = np.zeros((n_back, ))
-        labels = np.ones((length, )) * label
+        
+        labels = np.ones((length, )) * -1
 
         label_f = np.ones(pad_f.shape) * -1
-        label_b = np.ones(pad_b.shape) * -1
+        label_b1 = np.ones((8000, )) * label
+        label_b2 = np.ones((n_back - 8000, )) * -1
+        label_b = np.concatenate((label_b1, label_b2), axis=0)
 
         sig_hat   = np.concatenate((pad_f  , sig   , pad_b  ))
         label_hat = np.concatenate((label_f, labels, label_b))
@@ -167,6 +170,9 @@ class VoiceCommandDataset(Dataset):
 
             sig = snr_mix(sig, nse, snr, spl, rms_voc=rms_sig)
 
+        # Pre-emphasized
+        alpha = 0.97
+        sig = np.append(sig[0], sig[1:] - alpha*sig[:-1])
         spectrum = stft(sig)
         # spectra  = np.abs(spectrum) ** 2.0
 
@@ -184,9 +190,12 @@ class VoiceCommandDataset(Dataset):
                          power=2.0
                        )
         mel_spectra = mel_spectra[:, :-1] 
+        ## Subtract the mean of coefficient from all frames
+        # mel_spectra -= (np.mean(mel_spectra, axis=0) + 1e-8)
         # (nFrm, nFreq)
         spectrum    = np.transpose(spectrum).astype(np.complex64)
         mel_spectra = np.transpose(mel_spectra).astype(np.float32)
         label       = label.astype(np.int)
+
 
         return sig, spectrum, mel_spectra, label
