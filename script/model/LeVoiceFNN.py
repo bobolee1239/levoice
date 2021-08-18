@@ -6,10 +6,21 @@ if '..' not in sys.path:
     sys.path.append('..')
 
 import torch
-from   torch    import nn
+import torch.nn.functional as F
 import config
 
+from   torch    import nn
+
 # -----------------------------------------
+
+def pad_time(x, padding):
+    '''
+    Args:
+    --------
+        - x: (N, ch, nFrm, nFreq)
+        - padding: (time_left, time_right)
+    '''
+    return F.pad(x, (0, 0, *padding), "constant", 0) 
 
 class LeVoice(nn.Module):
     def __init__(self, nfreq):
@@ -17,7 +28,7 @@ class LeVoice(nn.Module):
 
         self.nfreq = nfreq
         
-        nhid = 64
+        nhid = 128
         nclass = config.N_CLASS
 
         self.relu = nn.ReLU()
@@ -30,13 +41,17 @@ class LeVoice(nn.Module):
                         nn.Linear(nfreq, nclass)
                       )
 
-    def forward(self, feat):
+    def forward(self, spectra):
         '''
         Args:
             - feat: <tensor> (N, nFrm, nFreq)
         '''
+        lookahead = 8
+        spectra = spectra.unsqueeze(1)
+        spectra = pad_time(spectra, (0, lookahead))
+        spectra = spectra.squeeze(1)
         # (nFrm, N, nFreq)
-        feat = feat.permute(1, 0, 2)
+        feat = spectra.permute(1, 0, 2)
 
         hid1 = self.tf(feat)
         hid1 = self.relu(hid1)
@@ -44,6 +59,8 @@ class LeVoice(nn.Module):
         hid3, hn3 = self.gru2(hid2)
 
         pred = self.output(hid3)
+        # Get rid of lookahead and reshape
+        pred = pred[lookahead:, :, :]
         pred = pred.permute(1, 0, 2)
 
         return pred

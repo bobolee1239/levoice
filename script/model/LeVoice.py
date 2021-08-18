@@ -50,11 +50,11 @@ class LeVoice(nn.Module):
         self.conv2_pt  = nn.Conv2d(8, 8, (1, 1))
         self.bn2       = nn.BatchNorm2d(8)
 
-        self.conv3_dep = nn.Conv2d( 8, 16, (3, 3), groups=8)
+        self.conv3_dep = nn.Conv2d( 8, 16, (3, 1), groups=8)
         self.conv3_pt  = nn.Conv2d(16, 16, (1, 1))
         self.bn3       = nn.BatchNorm2d(16)
 
-        self.conv4_dep = nn.Conv2d(16, 32, (3, 3), groups=16)
+        self.conv4_dep = nn.Conv2d(16, 32, (3, 1), groups=16)
         self.conv4_pt  = nn.Conv2d(32, 32, (1, 1))
         self.bn4       = nn.BatchNorm2d(32)
 
@@ -75,8 +75,8 @@ class LeVoice(nn.Module):
         '''
         # (N, 1, nFrm, nFreq)
         spectra = spectra.unsqueeze(1)
-        spectra = pad_time(spectra, (4, 4))
-        spectra = pad_freq(spectra, (4, 4))
+        spectra = pad_time(spectra, (2, 6))
+        spectra = pad_freq(spectra, (2, 2))
 
         spec_hid1 = self.conv1(spectra)
         spec_hid1 = self.bn1(spec_hid1)
@@ -108,7 +108,8 @@ class LeVoice(nn.Module):
         hid2, hn2 = self.gru1(hid1)
         hid3, hn3 = self.gru2(hid2)
 
-        pred = self.output(hid3)
+        hid4 = 0.5 * (hid2 + hid3)
+        pred = self.output(hid4)
         pred = pred.permute(1, 0, 2)
 
         return pred
