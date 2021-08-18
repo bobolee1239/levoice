@@ -1,10 +1,10 @@
 # File: config.py
 
 SR       = 16000
-NFFT     = 1024
+NFFT     = 512
 NMEL     = 40
 HOP_SIZE = 160
-WIN_SIZE = 640
+WIN_SIZE = 400
 WIN_TYPE = 'hann'
 
 SECONDS  = 4
