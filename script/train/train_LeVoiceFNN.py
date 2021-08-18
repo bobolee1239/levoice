@@ -13,7 +13,7 @@ if '..' not in sys.path:
     sys.path.append('..')
 
 from dataset.Dataloader import get_train_dataloader
-from model.LeVoice      import LeVoice
+from model.LeVoiceFNN   import LeVoice
 
 import config
 # ---------------------------------------------------------------
@@ -30,6 +30,7 @@ model = LeVoice(nfreq).float()
 model.to(device)
 optim = torch.optim.RMSprop(
             model.parameters(),
+            lr=0.00082,
             weight_decay=1e-4
         )
 critera = torch.nn.CrossEntropyLoss()
